@@ -16,7 +16,7 @@ function getErrorMessage(err: unknown): string {
 
 export interface QuestionFormData {
   prompt: string;
-  responseType: "multiple_choice" | "typed";
+  responseType: "multiple_choice" | "short_answer";
   options: string[];
   correctAnswer: string | null;
   autoGrade: boolean;
@@ -30,22 +30,22 @@ interface Props {
 
 export default function QuestionForm({ initial, onSubmit, onCancel }: Props) {
     const toResponseType = (value: string): QuestionFormData["responseType"] => {
-      return value === "multiple_choice" ? "multiple_choice" : "typed";
+      return value === "multiple_choice" ? "multiple_choice" : "short_answer";
     };
 
   const [form, setForm] = useState<QuestionFormData>({
     prompt: initial?.prompt ?? "",
-    responseType: initial?.responseType ?? "multiple_choice",
-    options: initial?.options?.length ? initial.options : ["", ""],
+    responseType: initial?.responseType === "short_answer" ? "short_answer" : "multiple_choice",
+    options: initial?.options?.length ? initial.options.map((o) => o.label) : ["", ""],
     correctAnswer: initial?.correctAnswer ?? "",
     autoGrade: initial?.autoGrade ?? false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  // Reset correct answer when switching response type
+  // Reset options when switching to short answer
   useEffect(() => {
-    if (form.responseType === "typed") {
+    if (form.responseType === "short_answer") {
       setForm((f) => ({ ...f, options: ["", ""] }));
     }
   }, [form.responseType]);
@@ -115,7 +115,7 @@ export default function QuestionForm({ initial, onSubmit, onCancel }: Props) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
-            <SelectItem value="typed">Typed Answer</SelectItem>
+            <SelectItem value="short_answer">Typed Answer</SelectItem>
           </SelectContent>
         </Select>
       </div>

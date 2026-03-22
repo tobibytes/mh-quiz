@@ -1,5 +1,5 @@
-const API_BASE = process.env.API_BASE;
- 
+const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/admin";
+
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem("admin_token");
@@ -29,16 +29,22 @@ export interface Quiz {
   id: string;
   date: string;
   type: "know_morganhacks" | "throwback";
+  title?: string;
   questionCount?: number;
   status?: string;
+}
+
+export interface QuizOption {
+  id: string;
+  label: string;
 }
 
 export interface Question {
   id: string;
   quizId: string;
   prompt: string;
-  responseType: "multiple_choice" | "typed";
-  options: string[];
+  responseType: "multiple_choice" | "short_answer";
+  options: QuizOption[];
   correctAnswer: string | null;
   autoGrade: boolean;
 }
@@ -56,26 +62,55 @@ export const adminApi = {
 
   getQuizzes: () => request<Quiz[]>("/quizzes"),
 
-  getQuiz: (id: string) => request<QuizDetail>(`/quiz/${id}`),
+  getQuiz: (id: string) => request<QuizDetail>(`/quizzes/${id}`),
 
-  createQuiz: (data: { date: string; type: string }) =>
-    request<Quiz>("/quiz", {
+  createQuiz: (data: { date: string; type: string; title?: string }) =>
+    request<{ id: string }>("/quizzes", {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
-  createQuestion: (data: Omit<Question, "id">) =>
-    request<Question>("/question", {
+  createQuestion: (data: {
+    quizId: string;
+    prompt: string;
+    responseType: "multiple_choice" | "short_answer";
+    options: string[];
+    correctAnswer: string | null;
+    autoGrade: boolean;
+  }) =>
+    request<{ id: string }>("/questions", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        quizId: data.quizId,
+        prompt: data.prompt,
+        responseType: data.responseType,
+        autoGrade: data.autoGrade,
+        correctAnswer: data.correctAnswer || undefined,
+        options: data.options.filter((o) => o.trim()).map((label) => ({ label })),
+      }),
     }),
 
-  updateQuestion: (id: string, data: Partial<Omit<Question, "id">>) =>
-    request<Question>(`/question/${id}`, {
+  updateQuestion: (
+    id: string,
+    data: {
+      prompt?: string;
+      responseType?: "multiple_choice" | "short_answer";
+      options?: string[];
+      correctAnswer?: string | null;
+      autoGrade?: boolean;
+    }
+  ) =>
+    request<{ success: boolean }>(`/questions/${id}`, {
       method: "PATCH",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        correctAnswer: data.correctAnswer || undefined,
+        options: data.options !== undefined
+          ? data.options.filter((o) => o.trim()).map((label) => ({ label }))
+          : undefined,
+      }),
     }),
 
   deleteQuestion: (id: string) =>
-    request<void>(`/question/${id}`, { method: "DELETE" }),
+    request<{ success: boolean }>(`/questions/${id}`, { method: "DELETE" }),
 };

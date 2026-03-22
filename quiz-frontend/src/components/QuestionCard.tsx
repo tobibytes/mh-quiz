@@ -21,12 +21,12 @@ export default function QuestionCard({ question, answer, onAnswer, direction }: 
       className="glass-card rounded-3xl p-8 md:p-10 w-full max-w-2xl mx-auto"
     >
       <h2 className="font-display text-xl md:text-2xl font-semibold mb-8 leading-snug text-foreground">
-        {question.question}
+        {question.prompt}
       </h2>
 
-      {question.type === "mcq" && question.options ? (
+      {question.responseType === "multiple_choice" && question.options.length > 0 ? (
         <MCQOptions
-          options={question.options}
+          options={question.options.map((o) => o.label)}
           selected={answer || null}
           onSelect={onAnswer}
         />

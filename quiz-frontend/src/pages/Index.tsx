@@ -34,7 +34,7 @@ export default function Index() {
     setLoading(true);
     try {
       const data = await fetchTodayQuiz();
-      if (!data.quizId || !data.questions?.length) {
+      if (!data.quizId || !data.questions.length) {
         setScreen("no-quiz");
       } else if (data.hasAttempted) {
         setScreen("no-quiz");
@@ -45,11 +45,11 @@ export default function Index() {
       }
     } catch {
       const mock: Question[] = [
-        { id: "1", type: "mcq", question: "When was the first MorganHacks held?", options: ["2019", "2020", "2021", "2022"] },
-        { id: "2", type: "mcq", question: "Which university hosts MorganHacks?", options: ["Morgan State University", "Howard University", "Spelman College", "Hampton University"] },
-        { id: "3", type: "short_answer", question: "What is the theme of MorganHacks 2026?" },
-        { id: "4", type: "mcq", question: "How long does a typical MorganHacks last?", options: ["12 hours", "24 hours", "36 hours", "48 hours"] },
-        { id: "5", type: "mcq", question: "What track focuses on social impact projects?", options: ["Hack for Good", "Build the Future", "Code for Change", "Impact Track"] },
+        { id: "1", responseType: "multiple_choice", prompt: "When was the first MorganHacks held?", options: [{ id: "1a", label: "2019" }, { id: "1b", label: "2020" }, { id: "1c", label: "2021" }, { id: "1d", label: "2022" }], autoGrade: false },
+        { id: "2", responseType: "multiple_choice", prompt: "Which university hosts MorganHacks?", options: [{ id: "2a", label: "Morgan State University" }, { id: "2b", label: "Howard University" }, { id: "2c", label: "Spelman College" }, { id: "2d", label: "Hampton University" }], autoGrade: false },
+        { id: "3", responseType: "short_answer", prompt: "What is the theme of MorganHacks 2026?", options: [], autoGrade: false },
+        { id: "4", responseType: "multiple_choice", prompt: "How long does a typical MorganHacks last?", options: [{ id: "4a", label: "12 hours" }, { id: "4b", label: "24 hours" }, { id: "4c", label: "36 hours" }, { id: "4d", label: "48 hours" }], autoGrade: false },
+        { id: "5", responseType: "multiple_choice", prompt: "What track focuses on social impact projects?", options: [{ id: "5a", label: "Hack for Good" }, { id: "5b", label: "Build the Future" }, { id: "5c", label: "Code for Change" }, { id: "5d", label: "Impact Track" }], autoGrade: false },
       ];
       setQuizId("demo");
       setQuestions(mock);
@@ -69,7 +69,7 @@ export default function Index() {
       const demoResults = questions.map((q, i) => ({
         questionId: q.id,
         correct: i < 3,
-        correctAnswer: q.options?.[0] || "The Future",
+        correctAnswer: q.options?.[0]?.label || "The Future",
         userAnswer: answers[q.id] || "",
       }));
       setResult({ score: 3, total: questions.length, results: demoResults });
