@@ -76,7 +76,7 @@ export default function ResultsScreen({ result, questions }: ResultsScreenProps)
               <p className="text-sm text-muted-foreground mb-2 font-display tracking-wide">
                 {isThrowback ? `Record ${i + 1}` : `Q${i + 1}`}
               </p>
-              <p className="text-foreground font-medium mb-4">{q?.question}</p>
+              <p className="text-foreground font-medium mb-4">{q?.prompt}</p>
               <div className="flex flex-col gap-1 text-sm">
                 <p>
                   <span className="text-muted-foreground">Your answer: </span>

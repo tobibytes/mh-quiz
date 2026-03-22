@@ -3,7 +3,9 @@ import { db } from "../../db/client.js";
 
 export const adminRepo = {
   listQuizzes() {
-    return db.prepare("SELECT id, date, type, title, status, created_at, updated_at FROM quizzes ORDER BY date DESC").all();
+    return db.prepare(
+      "SELECT q.id, q.date, q.type, q.title, q.status, q.created_at, q.updated_at, COUNT(qu.id) AS questionCount FROM quizzes q LEFT JOIN questions qu ON qu.quiz_id = q.id GROUP BY q.id ORDER BY q.date DESC"
+    ).all();
   },
 
   getQuizById(id: string) {
