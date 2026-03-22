@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+  return "Failed to create quiz";
+}
+
 export default function CreateQuizPage() {
   const [date, setDate] = useState("");
   const [type, setType] = useState("");
@@ -23,8 +30,8 @@ export default function CreateQuizPage() {
     try {
       const quiz = await adminApi.createQuiz({ date, type });
       navigate(`/quizzes/${quiz.id}`);
-    } catch (err: any) {
-      setError(err.message || "Failed to create quiz");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
-const API_BASE = "/api/admin";
+const API_BASE = process.env.API_BASE;
+ 
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem("admin_token");

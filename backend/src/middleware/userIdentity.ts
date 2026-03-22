@@ -1,0 +1,14 @@
+import type { NextFunction, Request, Response } from "express";
+import { ApiError } from "../modules/shared/api-error.js";
+
+export function userIdentity(req: Request, _res: Response, next: NextFunction): void {
+  const clientId = req.header("x-user-id")?.trim();
+  const fingerprintHash = req.header("x-user-fingerprint")?.trim();
+
+  if (!clientId) {
+    throw new ApiError(400, "x-user-id header is required");
+  }
+
+  req.userIdentity = { clientId, fingerprintHash };
+  next();
+}

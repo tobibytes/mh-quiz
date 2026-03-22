@@ -25,7 +25,7 @@ export interface SubmitResponse {
   }[];
 }
 
-const API_BASE = "/api";
+const API_BASE = process.env.API_BASE; 
 
 function headers(): HeadersInit {
   return {

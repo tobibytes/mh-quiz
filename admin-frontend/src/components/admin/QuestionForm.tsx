@@ -7,6 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import OptionEditor from "./OptionEditor";
 import type { Question } from "@/lib/admin-api";
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+  return "Failed to save";
+}
+
 export interface QuestionFormData {
   prompt: string;
   responseType: "multiple_choice" | "typed";
@@ -22,6 +29,10 @@ interface Props {
 }
 
 export default function QuestionForm({ initial, onSubmit, onCancel }: Props) {
+    const toResponseType = (value: string): QuestionFormData["responseType"] => {
+      return value === "multiple_choice" ? "multiple_choice" : "typed";
+    };
+
   const [form, setForm] = useState<QuestionFormData>({
     prompt: initial?.prompt ?? "",
     responseType: initial?.responseType ?? "multiple_choice",
@@ -74,8 +85,8 @@ export default function QuestionForm({ initial, onSubmit, onCancel }: Props) {
         options: form.responseType === "multiple_choice" ? form.options.filter((o) => o.trim()) : [],
         correctAnswer: form.autoGrade ? (form.correctAnswer?.trim() || null) : null,
       });
-    } catch (err: any) {
-      setErrors({ submit: err.message || "Failed to save" });
+    } catch (err: unknown) {
+      setErrors({ submit: getErrorMessage(err) });
     } finally {
       setLoading(false);
     }
@@ -97,7 +108,7 @@ export default function QuestionForm({ initial, onSubmit, onCancel }: Props) {
         <label className="mb-1 block text-sm font-medium text-foreground">Response type</label>
         <Select
           value={form.responseType}
-          onValueChange={(v) => setForm((f) => ({ ...f, responseType: v as any, correctAnswer: "" }))}
+          onValueChange={(v) => setForm((f) => ({ ...f, responseType: toResponseType(v), correctAnswer: "" }))}
         >
           <SelectTrigger className="w-56">
             <SelectValue />

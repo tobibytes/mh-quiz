@@ -5,6 +5,14 @@ import { adminApi } from "@/lib/admin-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+  return "Invalid password";
+}
+
+
 export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,8 +28,8 @@ export default function LoginPage() {
       const { token } = await adminApi.login(password);
       login(token);
       navigate("/quizzes");
-    } catch (err: any) {
-      setError(err.message || "Invalid password");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
