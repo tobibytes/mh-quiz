@@ -17,41 +17,56 @@ export const adminController = {
     res.json(adminService.listQuizzes());
   },
 
+  getMetrics(_req: Request, res: Response) {
+    res.json(adminService.getMetrics());
+  },
+
+  getAuditLogs(req: Request, res: Response) {
+    const limit = typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
+    res.json(adminService.getRecentAuditLogs(limit));
+  },
+
+  getLeaderboard(req: Request, res: Response) {
+    const quizId = typeof req.query.quizId === "string" ? req.query.quizId : undefined;
+    const limit = typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
+    res.json(adminService.getLeaderboard({ quizId, limit }));
+  },
+
   getQuiz(req: Request, res: Response) {
     res.json(adminService.getQuiz(asParam(req.params.id)));
   },
 
   createQuiz(req: Request, res: Response) {
     const payload = createQuizSchema.parse(req.body);
-    const data = adminService.createQuiz(payload);
+    const data = adminService.createQuiz(payload, req.admin?.id);
     res.status(201).json(data);
   },
 
   updateQuiz(req: Request, res: Response) {
     const payload = updateQuizSchema.parse(req.body);
-    const data = adminService.updateQuiz(asParam(req.params.id), payload);
+    const data = adminService.updateQuiz(asParam(req.params.id), payload, req.admin?.id);
     res.json(data);
   },
 
   deleteQuiz(req: Request, res: Response) {
-    const data = adminService.deleteQuiz(asParam(req.params.id));
+    const data = adminService.deleteQuiz(asParam(req.params.id), req.admin?.id);
     res.json(data);
   },
 
   createQuestion(req: Request, res: Response) {
     const payload = createQuestionSchema.parse(req.body);
-    const data = adminService.createQuestion(payload);
+    const data = adminService.createQuestion(payload, req.admin?.id);
     res.status(201).json(data);
   },
 
   updateQuestion(req: Request, res: Response) {
     const payload = updateQuestionSchema.parse(req.body);
-    const data = adminService.updateQuestion(asParam(req.params.id), payload);
+    const data = adminService.updateQuestion(asParam(req.params.id), payload, req.admin?.id);
     res.json(data);
   },
 
   deleteQuestion(req: Request, res: Response) {
-    const data = adminService.deleteQuestion(asParam(req.params.id));
+    const data = adminService.deleteQuestion(asParam(req.params.id), req.admin?.id);
     res.json(data);
   }
 };

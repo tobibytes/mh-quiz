@@ -1,5 +1,13 @@
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/admin";
 
+async function parseJsonSafe(response: Response): Promise<Record<string, unknown>> {
+  try {
+    return await response.json();
+  } catch {
+    return {};
+  }
+}
+
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem("admin_token");
@@ -18,8 +26,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || body.error || `Request failed (${res.status})`);
+    const body = await parseJsonSafe(res);
+    const message =
+      (typeof body.message === "string" && body.message) ||
+      (typeof body.error === "string" && body.error) ||
+      (res.status === 429 ? "Too many requests. Please try again shortly." : "") ||
+      `Request failed (${res.status})`;
+    throw new Error(message);
   }
 
   return res.json();
@@ -53,6 +66,37 @@ export interface QuizDetail extends Quiz {
   questions: Question[];
 }
 
+export interface LeaderboardEntry {
+  userId: string;
+  clientId: string;
+  name: string | null;
+  school: string | null;
+  schoolEmail: string | null;
+  attemptsCount: number;
+  totalScore: number;
+  totalPossible: number;
+  lastSubmittedAt: string;
+}
+
+export interface AdminMetrics {
+  quizzesCount: number;
+  questionsCount: number;
+  usersCount: number;
+  attemptsCount: number;
+  todayAttemptsCount: number;
+  todayDate: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actorId: string | null;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  metadata: string | null;
+  createdAt: string;
+}
+
 export const adminApi = {
   login: (password: string) =>
     request<{ token: string }>("/login", {
@@ -64,11 +108,26 @@ export const adminApi = {
 
   getQuiz: (id: string) => request<QuizDetail>(`/quizzes/${id}`),
 
+  getLeaderboard: (params?: { quizId?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.quizId) query.set("quizId", params.quizId);
+    if (params?.limit) query.set("limit", String(params.limit));
+    const suffix = query.toString() ? `?${query.toString()}` : "";
+    return request<LeaderboardEntry[]>(`/leaderboard${suffix}`);
+  },
+
+  getMetrics: () => request<AdminMetrics>("/metrics"),
+
+  getAuditLogs: (limit = 20) => request<AuditLogEntry[]>(`/audit-logs?limit=${limit}`),
+
   createQuiz: (data: { date: string; type: string; title?: string }) =>
     request<{ id: string }>("/quizzes", {
       method: "POST",
       body: JSON.stringify(data),
     }),
+
+  deleteQuiz: (id: string) =>
+    request<{ success: boolean }>(`/quizzes/${id}`, { method: "DELETE" }),
 
   createQuestion: (data: {
     quizId: string;

@@ -9,7 +9,7 @@ function asParam(value: string | string[] | undefined): string {
 export const quizController = {
   getToday(req: Request, res: Response) {
     const identity = req.userIdentity!;
-    const data = quizService.getTodayQuizForUser(identity.clientId, identity.fingerprintHash);
+    const data = quizService.getTodayQuizForUser(identity.clientId, identity.fingerprintHash, identity.name, identity.school, identity.schoolEmail);
     res.json(data);
   },
 
@@ -20,6 +20,9 @@ export const quizController = {
     const result = quizService.submitQuizAttempt({
       userClientId: identity.clientId,
       fingerprintHash: identity.fingerprintHash,
+      name: identity.name,
+      school: identity.school,
+      schoolEmail: identity.schoolEmail,
       quizId: payload.quizId,
       answers: payload.answers
     });
@@ -29,7 +32,14 @@ export const quizController = {
 
   getAttempt(req: Request, res: Response) {
     const identity = req.userIdentity!;
-    const result = quizService.getAttempt(asParam(req.params.quizId), identity.clientId, identity.fingerprintHash);
+    const result = quizService.getAttempt(
+      asParam(req.params.quizId),
+      identity.clientId,
+      identity.fingerprintHash,
+      identity.name,
+      identity.school,
+      identity.schoolEmail
+    );
     res.json(result);
   }
 };

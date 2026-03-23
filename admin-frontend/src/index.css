@@ -96,6 +96,27 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .admin-bg {
+    background:
+      radial-gradient(1200px 500px at 20% -10%, hsl(var(--primary) / 0.14), transparent 60%),
+      radial-gradient(900px 400px at 95% -10%, hsl(var(--success) / 0.10), transparent 60%),
+      hsl(var(--background));
+  }
+
+  .admin-surface {
+    @apply rounded-xl border border-border/80 bg-card/90 shadow-sm backdrop-blur;
+  }
+
+  .admin-kpi {
+    @apply admin-surface p-4 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md;
+  }
+
+  .admin-page-title {
+    @apply text-2xl font-semibold tracking-tight text-foreground;
   }
 }

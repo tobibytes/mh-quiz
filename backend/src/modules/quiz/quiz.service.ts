@@ -14,10 +14,10 @@ function dateInTimeZone(timezone: string): string {
 }
 
 export const quizService = {
-  getTodayQuizForUser(userClientId: string, fingerprintHash?: string, timezone = "America/New_York") {
+  getTodayQuizForUser(userClientId: string, fingerprintHash?: string, name?: string, school?: string, schoolEmail?: string, timezone = "America/New_York") {
     const today = dateInTimeZone(timezone);
     const quiz = quizRepo.getQuizForDate(today);
-    const user = quizRepo.upsertUser(userClientId, fingerprintHash);
+    const user = quizRepo.upsertUser({ clientId: userClientId, fingerprintHash, name, school, schoolEmail });
 
     if (!quiz) {
       return { quiz: null, questions: [], hasAttempted: false };
@@ -43,6 +43,9 @@ export const quizService = {
   submitQuizAttempt(input: {
     userClientId: string;
     fingerprintHash?: string;
+    name?: string;
+    school?: string;
+    schoolEmail?: string;
     quizId: string;
     answers: Array<{ questionId: string; userAnswer?: string }>;
   }) {
@@ -51,7 +54,13 @@ export const quizService = {
       throw new ApiError(400, "Quiz is not currently active for today");
     }
 
-    const user = quizRepo.upsertUser(input.userClientId, input.fingerprintHash);
+    const user = quizRepo.upsertUser({
+      clientId: input.userClientId,
+      fingerprintHash: input.fingerprintHash,
+      name: input.name,
+      school: input.school,
+      schoolEmail: input.schoolEmail
+    });
     const existing = quizRepo.getAttemptForQuiz(input.quizId, user.id);
     if (existing) {
       throw new ApiError(409, "User has already attempted this quiz");
@@ -110,8 +119,8 @@ export const quizService = {
     };
   },
 
-  getAttempt(quizId: string, userClientId: string, fingerprintHash?: string) {
-    const user = quizRepo.upsertUser(userClientId, fingerprintHash);
+  getAttempt(quizId: string, userClientId: string, fingerprintHash?: string, name?: string, school?: string, schoolEmail?: string) {
+    const user = quizRepo.upsertUser({ clientId: userClientId, fingerprintHash, name, school, schoolEmail });
     const attempt = quizRepo.getAttemptForQuiz(quizId, user.id);
 
     if (!attempt) {

@@ -36,9 +36,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 rounded-lg border border-border bg-card p-6">
-        <h1 className="text-xl font-semibold text-foreground">MorganHacks Quiz Admin</h1>
+    <div className="admin-bg relative flex min-h-screen items-center justify-center px-4">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,hsl(var(--primary)/0.12),transparent_35%),radial-gradient(circle_at_80%_10%,hsl(var(--success)/0.10),transparent_35%)]" />
+
+      <form onSubmit={handleSubmit} className="admin-surface relative z-10 w-full max-w-sm space-y-5 p-6">
+        <div className="mb-1 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary via-primary/80 to-success text-base font-bold text-primary-foreground shadow-sm">
+            M
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">MorganHacks Admin</h1>
+            <p className="text-xs text-muted-foreground">Sign in to manage quizzes</p>
+          </div>
+        </div>
+
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Password</label>
           <Input

@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import QuizListPage from "./pages/QuizListPage";
 import CreateQuizPage from "./pages/CreateQuizPage";
 import QuizDetailPage from "./pages/QuizDetailPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/quizzes" element={<ProtectedRoute><QuizListPage /></ProtectedRoute>} />
             <Route path="/quizzes/new" element={<ProtectedRoute><CreateQuizPage /></ProtectedRoute>} />
             <Route path="/quizzes/:id" element={<ProtectedRoute><QuizDetailPage /></ProtectedRoute>} />
+            <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

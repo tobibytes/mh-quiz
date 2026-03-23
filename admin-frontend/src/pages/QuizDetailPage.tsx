@@ -34,11 +34,14 @@ export default function QuizDetailPage() {
         <ArrowLeft className="h-4 w-4" /> Back to quizzes
       </Link>
 
-      <div className="mb-6 flex items-center gap-3">
-        <h1 className="text-xl font-semibold text-foreground">{quiz.date}</h1>
-        <Badge variant="secondary">
-          {quiz.type === "know_morganhacks" ? "Know MorganHacks" : "Throwback"}
-        </Badge>
+      <div className="admin-surface mb-6 p-5">
+        <div className="mb-2 flex items-center gap-3">
+          <h1 className="admin-page-title">{quiz.date}</h1>
+          <Badge variant="secondary">
+            {quiz.type === "know_morganhacks" ? "Know MorganHacks" : "Throwback"}
+          </Badge>
+        </div>
+        <p className="text-sm text-muted-foreground">Manage questions and answer keys for this quiz.</p>
       </div>
 
       <QuestionList

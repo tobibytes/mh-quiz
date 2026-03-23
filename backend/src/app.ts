@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { env } from "./config/env.js";
+import { db } from "./db/client.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { generalRateLimit } from "./middleware/rateLimit.js";
 import { requestIdMiddleware } from "./middleware/requestId.js";
@@ -29,7 +30,23 @@ app.use(express.json({ limit: "1mb" }));
 app.use(generalRateLimit);
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({
+    status: "ok",
+    service: "mh-quiz-backend",
+    version: "1.0.0",
+    env: env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor(process.uptime())
+  });
+});
+
+app.get("/health/ready", (_req, res) => {
+  try {
+    db.prepare("SELECT 1").get();
+    res.json({ status: "ready", timestamp: new Date().toISOString() });
+  } catch {
+    res.status(503).json({ status: "not_ready", timestamp: new Date().toISOString() });
+  }
 });
 
 app.use("/api/quiz", quizRouter);

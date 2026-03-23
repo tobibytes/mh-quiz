@@ -9,6 +9,10 @@ import type { Question } from "@/lib/admin-api";
 
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error && err.message) {
+    const lower = err.message.toLowerCase();
+    if (lower.includes("duplicate question") || lower.includes("unique") || lower.includes("constraint")) {
+      return "Duplicate question found";
+    }
     return err.message;
   }
   return "Failed to save";

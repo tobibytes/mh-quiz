@@ -7,6 +7,9 @@ declare global {
       userIdentity?: {
         clientId: string;
         fingerprintHash?: string;
+        name?: string;
+        school?: string;
+        schoolEmail?: string;
       };
       admin?: {
         id: string;

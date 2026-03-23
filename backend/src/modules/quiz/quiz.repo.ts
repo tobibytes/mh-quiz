@@ -34,17 +34,21 @@ export const quizRepo = {
     return db.prepare("SELECT id, date, type, title FROM quizzes WHERE date = ? AND status IN ('active', 'scheduled') LIMIT 1").get(date) as DbQuiz | undefined;
   },
 
-  upsertUser(clientId: string, fingerprintHash?: string): { id: string } {
+  upsertUser(input: { clientId: string; fingerprintHash?: string; name?: string; school?: string; schoolEmail?: string }): { id: string } {
     const now = new Date().toISOString();
-    const existing = db.prepare("SELECT id FROM users WHERE client_id = ?").get(clientId) as { id: string } | undefined;
+    const existing = db.prepare("SELECT id FROM users WHERE client_id = ?").get(input.clientId) as { id: string } | undefined;
 
     if (existing) {
-      db.prepare("UPDATE users SET fingerprint_hash = COALESCE(?, fingerprint_hash), last_seen_at = ? WHERE id = ?").run(fingerprintHash ?? null, now, existing.id);
+      db.prepare(
+        "UPDATE users SET fingerprint_hash = COALESCE(?, fingerprint_hash), name = COALESCE(?, name), school = COALESCE(?, school), school_email = COALESCE(?, school_email), last_seen_at = ? WHERE id = ?"
+      ).run(input.fingerprintHash ?? null, input.name ?? null, input.school ?? null, input.schoolEmail ?? null, now, existing.id);
       return existing;
     }
 
     const id = `user_${nanoid()}`;
-    db.prepare("INSERT INTO users (id, client_id, fingerprint_hash, first_seen_at, last_seen_at) VALUES (?, ?, ?, ?, ?)").run(id, clientId, fingerprintHash ?? null, now, now);
+    db.prepare(
+      "INSERT INTO users (id, client_id, fingerprint_hash, name, school, school_email, first_seen_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run(id, input.clientId, input.fingerprintHash ?? null, input.name ?? null, input.school ?? null, input.schoolEmail ?? null, now, now);
     return { id };
   },
 

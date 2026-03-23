@@ -58,7 +58,7 @@ export default function QuestionList({ questions, onAdd, onUpdate, onDelete }: P
             onCancel={() => setEditingId(null)}
           />
         ) : (
-          <div key={q.id} className="flex items-start justify-between rounded-md border border-border bg-card p-3">
+          <div key={q.id} className="admin-surface flex items-start justify-between p-4">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-foreground">
                 {i + 1}. {q.prompt}

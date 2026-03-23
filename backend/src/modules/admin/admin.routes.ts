@@ -9,6 +9,9 @@ adminRouter.post("/login", loginRateLimit, adminController.login);
 
 adminRouter.use(adminAuth);
 adminRouter.get("/quizzes", adminController.listQuizzes);
+adminRouter.get("/metrics", adminController.getMetrics);
+adminRouter.get("/audit-logs", adminController.getAuditLogs);
+adminRouter.get("/leaderboard", adminController.getLeaderboard);
 adminRouter.get("/quizzes/:id", adminController.getQuiz);
 adminRouter.post("/quizzes", adminController.createQuiz);
 adminRouter.patch("/quizzes/:id", adminController.updateQuiz);

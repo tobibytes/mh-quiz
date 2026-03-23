@@ -95,10 +95,18 @@ export const adminRepo = {
     correctAnswer?: string;
     position?: number;
     options?: Array<{ label: string }>;
-  }) {
+  }): { id: string } | undefined | "duplicate" {
     const quizExists = db.prepare("SELECT id FROM quizzes WHERE id = ?").get(input.quizId) as { id: string } | undefined;
     if (!quizExists) {
       return undefined;
+    }
+
+    const duplicate = db.prepare(
+      "SELECT id FROM questions WHERE quiz_id = ? AND lower(trim(prompt)) = lower(trim(?)) LIMIT 1"
+    ).get(input.quizId, input.prompt) as { id: string } | undefined;
+
+    if (duplicate) {
+      return "duplicate";
     }
 
     const now = new Date().toISOString();
@@ -133,13 +141,22 @@ export const adminRepo = {
       position?: number;
       options?: Array<{ label: string }>;
     }
-  ) {
+  ): boolean | "duplicate" {
     const current = db.prepare("SELECT id, prompt, response_type, auto_grade, correct_answer, position FROM questions WHERE id = ?").get(id) as
       | { id: string; prompt: string; response_type: string; auto_grade: number; correct_answer: string | null; position: number }
       | undefined;
 
     if (!current) {
       return false;
+    }
+
+    const nextPrompt = input.prompt ?? current.prompt;
+    const duplicate = db.prepare(
+      "SELECT id FROM questions WHERE quiz_id = (SELECT quiz_id FROM questions WHERE id = ?) AND lower(trim(prompt)) = lower(trim(?)) AND id != ? LIMIT 1"
+    ).get(id, nextPrompt, id) as { id: string } | undefined;
+
+    if (duplicate) {
+      return "duplicate";
     }
 
     const now = new Date().toISOString();
@@ -172,5 +189,104 @@ export const adminRepo = {
   deleteQuestion(id: string) {
     const result = db.prepare("DELETE FROM questions WHERE id = ?").run(id);
     return result.changes > 0;
+  },
+
+  getLeaderboard(input: { limit: number; quizId?: string }) {
+    const where = input.quizId ? "WHERE a.quiz_id = ?" : "";
+    const query = `
+      SELECT
+        u.id AS userId,
+        u.client_id AS clientId,
+        u.name AS name,
+        u.school AS school,
+        u.school_email AS schoolEmail,
+        COUNT(a.id) AS attemptsCount,
+        COALESCE(SUM(a.score), 0) AS totalScore,
+        COALESCE(SUM(a.total), 0) AS totalPossible,
+        MAX(a.submitted_at) AS lastSubmittedAt
+      FROM attempts a
+      INNER JOIN users u ON u.id = a.user_id
+      ${where}
+      GROUP BY u.id
+      ORDER BY totalScore DESC, totalPossible DESC, lastSubmittedAt ASC
+      LIMIT ?
+    `;
+
+    if (input.quizId) {
+      return db.prepare(query).all(input.quizId, input.limit);
+    }
+
+    return db.prepare(query).all(input.limit);
+  },
+
+  getMetrics() {
+    const totals = db.prepare(
+      `SELECT
+        (SELECT COUNT(*) FROM quizzes) AS quizzesCount,
+        (SELECT COUNT(*) FROM questions) AS questionsCount,
+        (SELECT COUNT(*) FROM users) AS usersCount,
+        (SELECT COUNT(*) FROM attempts) AS attemptsCount`
+    ).get() as {
+      quizzesCount: number;
+      questionsCount: number;
+      usersCount: number;
+      attemptsCount: number;
+    };
+
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(new Date());
+
+    const todayAttempts = db.prepare(
+      `SELECT COUNT(a.id) AS count
+       FROM attempts a
+       INNER JOIN quizzes q ON q.id = a.quiz_id
+       WHERE q.date = ?`
+    ).get(today) as { count: number };
+
+    return {
+      ...totals,
+      todayAttemptsCount: todayAttempts.count,
+      todayDate: today
+    };
+  },
+
+  listRecentAuditLogs(limit: number) {
+    return db.prepare(
+      `SELECT id, actor_id AS actorId, action, entity_type AS entityType, entity_id AS entityId, metadata, created_at AS createdAt
+       FROM audit_logs
+       ORDER BY created_at DESC
+       LIMIT ?`
+    ).all(limit);
+  },
+
+  logAdminAction(input: {
+    action: string;
+    entityType: string;
+    entityId?: string;
+    metadata?: Record<string, unknown>;
+    actorId?: string;
+  }) {
+    const actorExists = input.actorId
+      ? (db.prepare("SELECT id FROM users WHERE id = ? LIMIT 1").get(input.actorId) as { id: string } | undefined)
+      : undefined;
+
+    const safeActorId = actorExists?.id ?? null;
+
+    db.prepare(
+      `INSERT INTO audit_logs (id, actor_id, action, entity_type, entity_id, metadata, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      `audit_${nanoid()}`,
+      safeActorId,
+      input.action,
+      input.entityType,
+      input.entityId ?? null,
+      input.metadata ? JSON.stringify(input.metadata) : null,
+      new Date().toISOString()
+    );
   }
 };

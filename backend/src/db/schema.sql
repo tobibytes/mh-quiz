@@ -34,8 +34,22 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   client_id TEXT NOT NULL UNIQUE,
   fingerprint_hash TEXT,
+  name TEXT,
+  school TEXT,
+  school_email TEXT,
   first_seen_at TEXT NOT NULL,
   last_seen_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id TEXT PRIMARY KEY,
+  actor_id TEXT,
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT,
+  metadata TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS attempts (
@@ -67,3 +81,4 @@ CREATE INDEX IF NOT EXISTS idx_quizzes_date ON quizzes(date);
 CREATE INDEX IF NOT EXISTS idx_questions_quiz ON questions(quiz_id, position);
 CREATE INDEX IF NOT EXISTS idx_options_question ON question_options(question_id, position);
 CREATE INDEX IF NOT EXISTS idx_attempts_quiz_user ON attempts(quiz_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
