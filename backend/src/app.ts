@@ -1,6 +1,6 @@
 import cors from "cors";
 import express from "express";
-import helmet from "helmet";
+import * as helmet from "helmet";
 import morgan from "morgan";
 import { env } from "./config/env.js";
 import { db } from "./db/client.js";
@@ -12,11 +12,7 @@ import { quizRouter } from "./modules/quiz/quiz.routes.js";
 
 export const app = express();
 
-const helmetFactory = (helmet as unknown as { default?: () => express.RequestHandler }).default
-  ? (helmet as unknown as { default: () => express.RequestHandler }).default
-  : (helmet as unknown as () => express.RequestHandler);
-
-app.use(helmetFactory());
+app.use(helmet.default());
 app.use(requestIdMiddleware);
 app.use(morgan(":method :url :status :response-time ms reqId=:req[x-request-id]"));
 app.use(
