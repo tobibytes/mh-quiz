@@ -12,7 +12,11 @@ import { quizRouter } from "./modules/quiz/quiz.routes.js";
 
 export const app = express();
 
-app.use(helmet());
+const helmetFactory = (helmet as unknown as { default?: () => express.RequestHandler }).default
+  ? (helmet as unknown as { default: () => express.RequestHandler }).default
+  : (helmet as unknown as () => express.RequestHandler);
+
+app.use(helmetFactory());
 app.use(requestIdMiddleware);
 app.use(morgan(":method :url :status :response-time ms reqId=:req[x-request-id]"));
 app.use(
